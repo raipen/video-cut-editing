@@ -1,5 +1,5 @@
 import { spawn } from 'child_process';
-import { checkFfmpegInstalled, fileExists, getCSVData, validateCSV } from './utils.js';
+import { cleanOutputDir, deleteFile, checkFfmpegInstalled, fileExists, getCSVData, validateCSV, cutVideo, recordOutputPath, mergeVideos, createOutputDir } from './utils.js';
 
 if (!(await checkFfmpegInstalled())) {
     console.log('ffmpeg is not installed');
@@ -17,6 +17,24 @@ if(!(await fileExists(csvPath))) {
     process.exit(1);
 }
 
+try{
+    await cleanOutputDir('dist');
+    await deleteFile('output.txt');
+    await deleteFile('output.mp4');
+} catch (e) {
+    console.log('Failed to clean output directory');
+}
+await createOutputDir('dist');
+
 const csvData = await getCSVData(csvPath);
 await validateCSV(csvData);
 
+const outputDirs = await Promise.all(csvData.map(async (row) => {
+    return await cutVideo(row.video, row.start, row.end, row.video.replace("assets", "dist"));
+}));
+
+await recordOutputPath(outputDirs);
+
+await mergeVideos('output.mp4');
+
+console.log('Video has been cut and merged successfully');

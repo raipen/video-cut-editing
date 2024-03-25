@@ -14,3 +14,6 @@ desktop.ini
 .env
 assets/
 dist/
+test.csv
+output.txt
+output.mp4

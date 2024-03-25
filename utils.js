@@ -17,6 +17,42 @@ export const checkFfmpegInstalled = async () => {
     });
 };
 
+export const cleanOutputDir = async (path) => {
+    return new Promise((resolve, reject) => {
+        fs.rm(path, { recursive: true }, (err) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+};
+
+export const deleteFile = async (path) => {
+    return new Promise((resolve, reject) => {
+        fs.unlink(path, (err) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+};
+
+export const createOutputDir = async (path) => {
+    return new Promise((resolve, reject) => {
+        fs.mkdir(path, { recursive: true }, (err) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+};
+
 export const fileExists = async (path) => {
     return new Promise((resolve, reject) => {
         fs.access(path, fs.constants.F_OK, (err) => {
@@ -86,7 +122,7 @@ export const cutVideo = async (videoPath, start, end, outputPath) => {
 
 export const recordOutputPath = async (outputPath) => {
     return new Promise((resolve, reject) => {
-        fs.appendFile('output.txt', `${outputPath}\n`, (err) => {
+        fs.writeFile('output.txt', outputPath.map((path) => `file '${path}'`).join('\n'), (err) => {
             if (err) {
                 reject(err);
             } else {
@@ -106,12 +142,14 @@ export const mergeVideos = async (outputPath) => {
             outputPath
         ]);
         ffmpeg.on('error', (err) => {
+            console.log(err);
             reject(err);
         });
         ffmpeg.on('close', (code) => {
             if (code === 0) {
                 resolve(outputPath);
             } else {
+                console.log('Failed to merge videos');
                 reject(new Error('Failed to merge videos'));
             }
         });
