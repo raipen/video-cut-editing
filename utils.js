@@ -61,3 +61,59 @@ export const validateCSV = async (csvData) => {
         return true;
     }))).every((x) => x);
 };
+
+export const cutVideo = async (videoPath, start, end, outputPath) => {
+    return new Promise((resolve, reject) => {
+        const ffmpeg = spawn('ffmpeg', [
+            '-i', videoPath,
+            '-ss', start,
+            '-to', end,
+            '-c', 'copy',
+            outputPath
+        ]);
+        ffmpeg.on('error', (err) => {
+            reject(err);
+        });
+        ffmpeg.on('close', (code) => {
+            if (code === 0) {
+                resolve(outputPath);
+            } else {
+                reject(new Error('Failed to cut video'));
+            }
+        });
+    });
+};
+
+export const recordOutputPath = async (outputPath) => {
+    return new Promise((resolve, reject) => {
+        fs.appendFile('output.txt', `${outputPath}\n`, (err) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+};
+
+export const mergeVideos = async (outputPath) => {
+    return new Promise((resolve, reject) => {
+        const ffmpeg = spawn('ffmpeg', [
+            '-f', 'concat',
+            '-safe', '0',
+            '-i', 'output.txt',
+            '-c', 'copy',
+            outputPath
+        ]);
+        ffmpeg.on('error', (err) => {
+            reject(err);
+        });
+        ffmpeg.on('close', (code) => {
+            if (code === 0) {
+                resolve(outputPath);
+            } else {
+                reject(new Error('Failed to merge videos'));
+            }
+        });
+    });
+};
