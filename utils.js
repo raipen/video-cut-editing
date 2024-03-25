@@ -35,13 +35,13 @@ export const getCSVData = async (path) => {
             if (err) {
                 reject(err);
             } else {
-                const lines = data.split('\n');
+                const lines = data.trim().split('\n');
                 const [header, ...rows] = lines;
                 const keys = header.split(',');
                 const result = rows.map((row) => {
                     const values = row.split(',');
                     return keys.reduce((acc, key, i) => {
-                        acc[key] = values[i];
+                        acc[key] = values[i].trim();
                         return acc;
                     }, {});
                 });
@@ -53,7 +53,7 @@ export const getCSVData = async (path) => {
 
 export const validateCSV = async (csvData) => {
     return (await Promise.all(csvData.map(async (row,index) => {
-        if(!row.hasOwnProperty('video') || row.hasOwnProperty('start') || row.hasOwnProperty('end')) throw new Error(`Row ${index+1} is missing required fields`);
+        if(!row.hasOwnProperty('video') || !row.hasOwnProperty('start') || !row.hasOwnProperty('end')) throw new Error(`Row ${index+1} is missing required fields`);
         if(!row.video || !row.start || !row.end) throw new Error(`Row ${index+1} is missing required fields`);
         if(!(await fileExists(row.video))) throw new Error(`Row ${index+1} video file does not exist`);
         const timeRegex = /^(\d{2}):(\d{2}):(\d{2}).(\d{3})$/;
