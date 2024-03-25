@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
 
-export default async () => {
+export const checkFfmpegInstalled = async () => {
     return new Promise((resolve, reject) => {
         const ffmpeg = spawn('ffmpeg', ['-version']);
         ffmpeg.on('error', (err) => {
