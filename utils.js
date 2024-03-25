@@ -52,7 +52,12 @@ export const getCSVData = async (path) => {
 };
 
 export const validateCSV = async (csvData) => {
-    return csvData.every((row) => {
-        return row.hasOwnProperty('video') && row.hasOwnProperty('start') && row.hasOwnProperty('end');
-    });
+    return (await Promise.all(csvData.map(async (row,index) => {
+        if(!row.hasOwnProperty('video') || row.hasOwnProperty('start') || row.hasOwnProperty('end')) throw new Error(`Row ${index+1} is missing required fields`);
+        if(!row.video || !row.start || !row.end) throw new Error(`Row ${index+1} is missing required fields`);
+        if(!(await fileExists(row.video))) throw new Error(`Row ${index+1} video file does not exist`);
+        const timeRegex = /^(\d{2}):(\d{2}):(\d{2}).(\d{3})$/;
+        if(!timeRegex.test(row.start) || !timeRegex.test(row.end)) throw new Error(`Row ${index+1} start or end time is not in the correct format`);
+        return true;
+    }))).every((x) => x);
 };
